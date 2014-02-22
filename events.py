@@ -11,7 +11,7 @@ class Event(object):
     event_type: string specifying what kind of event it is"""
     def __init__(self, uuid=None, timestamp=None):
         self.event_type = "event"
-        self.uuid = uuid or uuid4()
+        self.uuid = uuid or str(uuid4())
         self.timestamp = timestamp or datetime.now()
 
     def to_data(self):
