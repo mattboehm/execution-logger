@@ -1,6 +1,6 @@
 import json
 import bdb
-from .events import LineEvent, CallEvent, ReturnEvent
+from events import LineEvent, CallEvent, ReturnEvent
 
 #set efm=%.%#line_number\":\ %l\\,\ \"file_name\":\ \"%f\"%.%#
 
