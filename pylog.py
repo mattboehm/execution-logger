@@ -16,6 +16,8 @@ class LoggingDebugger(bdb.Bdb):
     def __init__(self, event_logger, skip=None):
         bdb.Bdb.__init__(self, skip)
         self.event_logger = event_logger
+        self.last_line = None
+        self.call_stack = []
 
     def user_call(self, frame, args):
         event = CallEvent.from_debugger(frame)
@@ -23,8 +25,9 @@ class LoggingDebugger(bdb.Bdb):
         self.user_line(frame)
 
     def user_line(self, frame):
-        event = LineEvent.from_debugger(frame)
+        event = LineEvent.from_debugger(frame, self.last_line)
         self.event_logger.log_event(event)
+        self.last_line = event
         #import linecache
         #name = frame.f_code.co_name
         #fn = self.canonic(frame.f_code.co_filename)

@@ -38,11 +38,12 @@ class Event(object):
 
 class LineEvent(Event):
     """An event signifying when a line of code is executed"""
-    def __init__(self, file_name, line_number, uuid=None, timestamp=None):
+    def __init__(self, file_name, line_number, last_line=None, uuid=None, timestamp=None):
         super(LineEvent, self).__init__(uuid, timestamp)
         self.event_type = "line"
         self.file_name = file_name
         self.line_number = line_number
+        self.last_line = last_line
 
     def to_data(self):
         data = super(LineEvent, self).to_data()
@@ -50,6 +51,8 @@ class LineEvent(Event):
             "file_name": self.file_name,
             "line_number": self.line_number,
         })
+        if self.last_line:
+            data["last_line"] = self.last_line
         return data
 
     @classmethod
@@ -57,16 +60,19 @@ class LineEvent(Event):
         return cls(
             file_name=data.get("file_name"),
             line_number=data.get("line_number"),
+            last_line=data.get("last_line"),
             uuid=data.get("uuid"),
             timestamp=data.get("timestamp"),
         )
 
     @classmethod
-    def from_debugger(cls, frame):
+    def from_debugger(cls, frame, last_line):
+        last_line_id = (last_line and last_line.uuid) or None
         #line = linecache.getline(fn, frame.f_lineno, frame.f_globals)
         return cls(
             file_name=frame.f_code.co_filename,
             line_number=frame.f_lineno,
+            last_line=last_line_id,
         )
 
 class FunctionEvent(Event):
