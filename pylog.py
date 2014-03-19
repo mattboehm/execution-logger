@@ -4,6 +4,39 @@ from events import LineEvent, CallEvent, ReturnEvent
 
 #set efm=%.%#line_number\":\ %l\\,\ \"file_name\":\ \"%f\"%.%#
 
+class ProgramState(object):
+    def __init__(self, frame=None, last_line=None, call_stack=None):
+        self.frame = frame
+        self.last_line = last_line
+        self.call_stack = call_stack or []
+
+    @property
+    def current_file_name(self):
+        return self.frame.f_code.co_filename
+
+    @property
+    def current_line_number(self):
+        return self.frame.f_lineno
+
+    @property
+    def current_function_name(self):
+        return self.frame.f_code.co_name
+
+    @property
+    def last_call(self):
+        return (self.call_stack and self.call_stack[-1]) or None
+
+    def add_line(self, line_id):
+        self.last_line = line_id
+
+    def add_call(self, call_id):
+        self.call_stack.append(call_id)
+
+    def pop_call(self):
+        if self.call_stack:
+            return self.call_stack.pop()
+        return None
+    
 class JsonFileEventLogger(object):
     def __init__(self, log_file):
         """log_file: an apen stream to write to"""
