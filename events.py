@@ -14,36 +14,36 @@ class Event(object):
     event_type = "event"
 
     def __init__(self, uuid=None, timestamp=None, file_name=None, line_number=None, last_line=None, last_call=None):
-        self.uuid = uuid or str(uuid4())
+        #self.uuid = uuid or str(uuid4())
         if timestamp and isinstance(timestamp, basestring):
             timestamp = datetime.strptime(timestamp, TIME_FORMAT)
         self.file_name = file_name
         self.line_number = line_number
         self.timestamp = timestamp or datetime.now()
-        self.last_line = last_line
-        self.last_call = last_call
+        #self.last_line = last_line
+        #self.last_call = last_call
 
     def to_data(self):
         """return json-serializable version of the event"""
         return {
             "type": self.event_type,
-            "uuid": self.uuid,
+            #"uuid": self.uuid,
             "timestamp": self.timestamp.strftime(TIME_FORMAT),
             "file_name": self.file_name,
             "line_number": self.line_number,
-            "last_line": self.last_line,
-            "last_call": self.last_call,
+            #"last_line": self.last_line,
+            #"last_call": self.last_call,
         }
 
     @classmethod
     def get_attributes_from_data(cls, data):
         return {
-            "uuid": data.get("uuid"),
+            #"uuid": data.get("uuid"),
             "timestamp": data.get("timestamp"),
             "file_name": data.get("file_name"),
             "line_number": data.get("line_number"),
-            "last_line": data.get("last_line"),
-            "last_call": data.get("last_call"),
+            #"last_line": data.get("last_line"),
+            #"last_call": data.get("last_call"),
         }
 
     @classmethod
@@ -56,8 +56,8 @@ class Event(object):
         attributes = {
             "file_name": state.current_file_name,
             "line_number": state.current_line_number,
-            "last_line": state.last_line,
-            "last_call": state.last_call,
+            #"last_line": state.last_line,
+            #"last_call": state.last_call,
         }
         return attributes
     @classmethod

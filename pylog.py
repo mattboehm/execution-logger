@@ -57,13 +57,13 @@ class LoggingDebugger(bdb.Bdb):
         self.state.frame = frame
         call_event = CallEvent.from_state(self.state)
         self.event_logger.log_event(call_event)
-        self.state.add_call(call_event.uuid)
+        #self.state.add_call(call_event.uuid)
 
     def user_line_func(self, frame):
         self.state.frame = frame
         line_event = LineEvent.from_state(self.state)
         self.event_logger.log_event(line_event)
-        self.state.add_line(line_event.uuid)
+        #self.state.add_line(line_event.uuid)
 
         #import linecache
         #name = frame.f_code.co_name
@@ -75,11 +75,11 @@ class LoggingDebugger(bdb.Bdb):
         self.state.frame = frame
         return_event = ReturnEvent.from_state(self.state)
         self.event_logger.log_event(return_event)
-        self.state.pop_call()
+        #self.state.pop_call()
 
     def user_exception(self, frame, exc_stuff):
         self.state.frame = frame
         exception_event = ExceptionEvent.from_state(self.state)
         self.event_logger.log_event(exception_event)
-        self.state.pop_call()
+        #self.state.pop_call()
         self.set_continue()
