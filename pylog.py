@@ -46,10 +46,12 @@ class JsonFileEventLogger(object):
         self.log_file.write(json.dumps(event.to_data()) + "\n")
 
 class LoggingDebugger(bdb.Bdb):
-    def __init__(self, event_logger, state=None, skip=None):
+    def __init__(self, event_logger, state=None, skip=None, log_lines=True):
         bdb.Bdb.__init__(self, skip)
         self.event_logger = event_logger
         self.state = state or ProgramState()
+        if log_lines:
+            self.user_line = self.user_line_func
 
     def user_call(self, frame, args):
         self.state.frame = frame
@@ -57,7 +59,7 @@ class LoggingDebugger(bdb.Bdb):
         self.event_logger.log_event(call_event)
         self.state.add_call(call_event.uuid)
 
-    def user_line(self, frame):
+    def user_line_func(self, frame):
         self.state.frame = frame
         line_event = LineEvent.from_state(self.state)
         self.event_logger.log_event(line_event)
