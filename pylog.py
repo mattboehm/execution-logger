@@ -1,6 +1,6 @@
 import json
 import bdb
-from events import LineEvent, CallEvent, ReturnEvent
+from events import LineEvent, CallEvent, ReturnEvent, ExceptionEvent
 
 #set efm=%.%#line_number\":\ %l\\,\ \"file_name\":\ \"%f\"%.%#
 
@@ -46,21 +46,23 @@ class JsonFileEventLogger(object):
         self.log_file.write(json.dumps(event.to_data()) + "\n")
 
 class LoggingDebugger(bdb.Bdb):
-    def __init__(self, event_logger, skip=None):
+    def __init__(self, event_logger, state=None, skip=None):
         bdb.Bdb.__init__(self, skip)
         self.event_logger = event_logger
-        self.last_line = None
-        self.call_stack = []
+        self.state = state or ProgramState()
 
     def user_call(self, frame, args):
-        event = CallEvent.from_debugger(frame)
-        self.event_logger.log_event(event)
-        self.user_line(frame)
+        self.state.frame = frame
+        call_event = CallEvent.from_state(self.state)
+        self.event_logger.log_event(call_event)
+        self.state.add_call(call_event.uuid)
 
     def user_line(self, frame):
-        event = LineEvent.from_debugger(frame, self.last_line)
-        self.event_logger.log_event(event)
-        self.last_line = event
+        self.state.frame = frame
+        line_event = LineEvent.from_state(self.state)
+        self.event_logger.log_event(line_event)
+        self.state.add_line(line_event.uuid)
+
         #import linecache
         #name = frame.f_code.co_name
         #fn = self.canonic(frame.f_code.co_filename)
@@ -68,10 +70,14 @@ class LoggingDebugger(bdb.Bdb):
         #print '+++', fn, frame.f_lineno, name, ':', line.strip()
 
     def user_return(self, frame, retval):
-        event = ReturnEvent.from_debugger(frame)
-        self.event_logger.log_event(event)
+        self.state.frame = frame
+        return_event = ReturnEvent.from_state(self.state)
+        self.event_logger.log_event(return_event)
+        self.state.pop_call()
 
     def user_exception(self, frame, exc_stuff):
-        #TODO implement
-        print '<<< exception', exc_stuff
+        self.state.frame = frame
+        exception_event = ExceptionEvent.from_state(self.state)
+        self.event_logger.log_event(exception_event)
+        self.state.pop_call()
         self.set_continue()

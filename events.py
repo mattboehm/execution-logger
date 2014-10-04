@@ -5,81 +5,75 @@ Exception raised"""
 from datetime import datetime
 from uuid import uuid4
 
+TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
+
 class Event(object):
     """The base class for anything that happens that should be logged
-    timestamp: datetime.datetime of when it happened, default:now
-    event_type: string specifying what kind of event it is"""
-    def __init__(self, uuid=None, timestamp=None):
-        self.event_type = "event"
+    timestamp: datetime.datetime of when it happened, default:now"""
+    #event_type: string specifying what kind of event it is
+    event_type = "event"
+
+    def __init__(self, uuid=None, timestamp=None, file_name=None, line_number=None, last_line=None, last_call=None):
         self.uuid = uuid or str(uuid4())
+        if timestamp and isinstance(timestamp, basestring):
+            timestamp = datetime.strptime(timestamp, TIME_FORMAT)
+        self.file_name = file_name
+        self.line_number = line_number
         self.timestamp = timestamp or datetime.now()
+        self.last_line = last_line
+        self.last_call = last_call
 
     def to_data(self):
         """return json-serializable version of the event"""
         return {
             "type": self.event_type,
             "uuid": self.uuid,
-            "timestamp": self.timestamp.strftime("%Y-%m-%DT%H:%M:%S.%f"),
+            "timestamp": self.timestamp.strftime(TIME_FORMAT),
+            "file_name": self.file_name,
+            "line_number": self.line_number,
+            "last_line": self.last_line,
+            "last_call": self.last_call,
+        }
+
+    @classmethod
+    def get_attributes_from_data(cls, data):
+        return {
+            "uuid": data.get("uuid"),
+            "timestamp": data.get("timestamp"),
+            "file_name": data.get("file_name"),
+            "line_number": data.get("line_number"),
+            "last_line": data.get("last_line"),
+            "last_call": data.get("last_call"),
         }
 
     @classmethod
     def from_data(cls, data):
         """construct an instance of the class from a data representation"""
-        return cls(
-            uuid=data.get("uuid"),
-            timestamp=data.get("timestamp"),
-        )
-
+        return cls(**cls.get_attributes_from_data(data))
+    
     @classmethod
-    def from_debugger(cls, frame):
+    def get_attributes_from_state(cls, state):
+        attributes = {
+            "file_name": state.current_file_name,
+            "line_number": state.current_line_number,
+            "last_line": state.last_line,
+            "last_call": state.last_call,
+        }
+        return attributes
+    @classmethod
+    def from_state(cls, state):
         """construct an instance from a python frame"""
-        #TODO this is pretty pointless-- consider raising NotImplemented
-        return cls()
+        return cls(**cls.get_attributes_from_state(state))
 
 class LineEvent(Event):
     """An event signifying when a line of code is executed"""
-    def __init__(self, file_name, line_number, last_line=None, uuid=None, timestamp=None):
-        super(LineEvent, self).__init__(uuid, timestamp)
-        self.event_type = "line"
-        self.file_name = file_name
-        self.line_number = line_number
-        self.last_line = last_line
-
-    def to_data(self):
-        data = super(LineEvent, self).to_data()
-        data.update({
-            "file_name": self.file_name,
-            "line_number": self.line_number,
-        })
-        if self.last_line:
-            data["last_line"] = self.last_line
-        return data
-
-    @classmethod
-    def from_data(cls, data):
-        return cls(
-            file_name=data.get("file_name"),
-            line_number=data.get("line_number"),
-            last_line=data.get("last_line"),
-            uuid=data.get("uuid"),
-            timestamp=data.get("timestamp"),
-        )
-
-    @classmethod
-    def from_debugger(cls, frame, last_line):
-        last_line_id = (last_line and last_line.uuid) or None
-        #line = linecache.getline(fn, frame.f_lineno, frame.f_globals)
-        return cls(
-            file_name=frame.f_code.co_filename,
-            line_number=frame.f_lineno,
-            last_line=last_line_id,
-        )
+    event_type = "line"
 
 class FunctionEvent(Event):
     """base class for events related to functions (call, return, exception)"""
-    def __init__(self, function_name, uuid=None, timestamp=None):
-        super(FunctionEvent, self).__init__(uuid=uuid, timestamp=timestamp)
-        self.event_type = "function"
+    event_type = "function"
+    def __init__(self, function_name, **kwargs):
+        super(FunctionEvent, self).__init__(**kwargs)
         self.function_name = function_name
 
     def to_data(self):
@@ -90,47 +84,34 @@ class FunctionEvent(Event):
         return data
 
     @classmethod
-    def from_data(cls, data):
-        return cls(
-            function_name=data.get("function_name"),
-        )
+    def get_attributes_from_data(cls, data):
+        """construct an instance from a python frame"""
+        attributes = super(FunctionEvent, cls).get_attributes_from_data(data)
+        attributes["function_name"] = data.get("function_name")
+        return attributes
 
     @classmethod
-    def from_debugger(cls, frame):
+    def get_attributes_from_state(cls, state):
         """construct an instance from a python frame"""
-        return cls(
-            function_name=frame.f_code.co_name
-        )
+        attributes = super(FunctionEvent, cls).get_attributes_from_state(state)
+        attributes["function_name"] = state.current_function_name
+        return attributes
 
 
 class CallEvent(FunctionEvent):
     """Function call event"""
-    def __init__(self, function_name, uuid=None, timestamp=None):
-        super(CallEvent, self).__init__(
-            function_name=function_name,
-            uuid=uuid,
-            timestamp=timestamp,
-        )
-        self.event_type = "call"
+    event_type = "call"
 
 class ReturnEvent(FunctionEvent):
-    """function return event"""
-    def __init__(self, function_name, uuid=None, timestamp=None):
-        super(ReturnEvent, self).__init__(
-            function_name=function_name,
-            uuid=uuid,
-            timestamp=timestamp,
-        )
-        self.event_type = "return"
+    """Function call event"""
+    event_type = "return"
 
-class ExceptionEvent(Event):
+class ExceptionEvent(FunctionEvent):
     """Event representing an exception being raised
     There will be a separate event for each level of the stack
         that an exception is raised"""
-    def __init__(self, function_name, uuid=None, timestamp=None):
-        super(ExceptionEvent, self).__init__(
-            function_name=function_name,
-            uuid=uuid,
-            timestamp=timestamp,
-        )
-        self.event_type = "exception"
+    event_type = "exception"
+
+#A list of all valid event classes
+event_classes = (Event, LineEvent, FunctionEvent, CallEvent, ReturnEvent, ExceptionEvent)
+event_lookup = {event.event_type: event for event in event_classes}
