@@ -115,3 +115,63 @@ class ExceptionEvent(FunctionEvent):
 #A list of all valid event classes
 event_classes = (Event, LineEvent, FunctionEvent, CallEvent, ReturnEvent, ExceptionEvent)
 event_lookup = {event.event_type: event for event in event_classes}
+
+#TODO move to different file?
+class FunctionCall(object):
+    def __init__(self, call_event=None, sub_events=None, return_event=None):
+        self.call_event = call_event
+        self.sub_events = sub_events or []
+        self.return_event = return_event
+
+    def to_data(self):
+        return {
+            "call_event": self.call_event.to_data(),
+            "sub_events": [event.to_data() for event in self.sub_events],
+            "return_event": self.return_event.to_data(),
+        }
+
+class Function(object):
+    def __init__(self, name, file_name, line_number, called_by=None, calls=None):
+        self.name = name
+        self.file_name = file_name
+        self.line_number = line_number
+        self.called_by = called_by or set()
+        self.calls = calls or set()
+
+    @property
+    def key(self):
+        return (self.name, self.file_name, self.line_number)
+
+    def to_data(self):
+        return {
+            "name": self.name,
+            "file_name": self.file_name,
+            "line_number": self.line_number,
+            "called_by": list(sorted(self.called_by)),
+            "calls": list(sorted(self.calls)),
+        }
+
+class FunctionSet(object):
+    def __init__(self, functions=None):
+        self.functions = functions or {}
+
+    def get_function(self, name, file_name, line_number):
+        return self.functions.get((name, file_name, line_number))
+
+    def add_function_from_event(self, event):
+        return self.add_function(event.function_name, event.file_name, event.line_number)
+
+    def add_function(self, name, file_name, line_number):
+        function = self.get_function(name, file_name, line_number)
+        if not function:
+            function = Function(name, file_name, line_number)
+            self.functions[(name, file_name, line_number)] = function
+        return function
+
+    def add_call(self, caller, callee):
+        """assumes both functions have been added"""
+        self.functions[caller.key].calls.add(callee.key)
+        self.functions[callee.key].called_by.add(caller.key)
+
+    def to_data(self):
+        return [function.to_data() for function in self.functions.itervalues()]
