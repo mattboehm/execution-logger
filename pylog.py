@@ -1,6 +1,7 @@
 import json
 import bdb
-from events import LineEvent, CallEvent, ReturnEvent, ExceptionEvent
+import os
+from events import LineEvent, CallEvent, ReturnEvent, ExceptionEvent, FunctionSet, FunctionCall
 
 #set efm=%.%#line_number\":\ %l\\,\ \"file_name\":\ \"%f\"%.%#
 
@@ -12,7 +13,7 @@ class ProgramState(object):
 
     @property
     def current_file_name(self):
-        return self.frame.f_code.co_filename
+        return os.path.abspath(self.frame.f_code.co_filename)
 
     @property
     def current_line_number(self):
@@ -81,5 +82,32 @@ class LoggingDebugger(bdb.Bdb):
         self.state.frame = frame
         exception_event = ExceptionEvent.from_state(self.state)
         self.event_logger.log_event(exception_event)
-        #self.state.pop_call()
-        self.set_continue()
+
+class EventHandler(object):
+    def __init__(self, events):
+        """events is an iterable of Event objects"""
+        self.events = events
+
+    def process_events(self):
+        self.function_set = FunctionSet()
+        self.root_calls = []
+        function_call_stack = []
+        state = ProgramState()
+        
+        for event in self.events:
+            if event.event_type == "call":
+                function = self.function_set.add_function_from_event(event)
+                if state.last_call:
+                    self.function_set.add_call(state.last_call, function)
+                function_call_stack.append(FunctionCall(event))
+                if len(function_call_stack) > 1:
+                    function_call_stack[-2].sub_events.append(function_call_stack[-1])
+                state.add_call(function)
+
+            elif event.event_type in {"return", "exception"}:
+                if function_call_stack:
+                    function_call_stack[-1].return_event = event
+                    popped_call = function_call_stack.pop()
+                    if len(function_call_stack) == 1:
+                        self.root_calls.append(popped_call)
+                state.pop_call()
