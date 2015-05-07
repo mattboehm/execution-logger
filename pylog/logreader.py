@@ -10,7 +10,5 @@ class JsonFileEventReader(object):
     def iter_events(self):
         for line in self.log_file:
             if line:
-                event_json = json.loads(line)
-                event_class = events.event_lookup[event_json["type"]]
-                yield event_class.from_data(event_json)
-
+                event_data = json.loads(line)
+                yield events.event_from_data(event_data)
