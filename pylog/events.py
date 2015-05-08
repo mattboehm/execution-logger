@@ -236,7 +236,7 @@ class FunctionCall(object):
                 "ret_time": (self.return_event.timestamp - start_time).total_seconds(),
                 "name": self.call_event.function_name,
                 "args": self.call_event.args,
-                "retval": self.return_event.retval,
+                "retval": getattr(self.return_event, "retval", ""),
             }
         if cur_depth < max_depth:
             for evt in self.sub_events:
