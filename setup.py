@@ -16,13 +16,16 @@ setup(name='pylog',
       author_email='boehm.matthew@gmail.com',
       license='MPL 2.0',
       packages=find_packages(),
-      package_data={},
+      package_data={
+          "": ["static/*"],
+      },
       include_package_data=True,
       install_requires=[
+        'bottle',
         'docopt',
         'six',
       ],
       entry_points={
-        'console_scripts': ['pylog=pylog.cli:main'],
+        'console_scripts': ['pylog=pylog.cli:main', 'pylog-web=pylog.webviewer:main'],
       },
       zip_safe=False)
