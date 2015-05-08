@@ -155,7 +155,7 @@ class TestFunctionSet(unittest.TestCase):
     def test_to_flame(self):
         #FIXME add timestamps to events so this test passes
         etree = events.ExecutionTree.from_events(EVENT_LISTS["1"])
-        etree.sub_events[0].to_flame_2(100)
+        etree.to_flame_chart(100)
         #self.assertEqual(etree.sub_events[0].to_flame_2(100), {
             #'start_time': '2015-05-07T00:37:32.189008',
             #'calls': [

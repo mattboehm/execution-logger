@@ -186,6 +186,20 @@ class ExecutionTree(object):
     def to_data(self):
         return [event.to_data() for event in self.sub_events]
 
+    def to_flame_chart(self, max_depth):
+        start_time = self.sub_events[0].call_event.timestamp
+        stop_time = self.sub_events[-1].return_event.timestamp
+        total_seconds = (stop_time - start_time).total_seconds()
+        id_gen = itertools.count(1)
+        result = {
+            "start_time": start_time.strftime(TIME_FORMAT),
+            "total_seconds": total_seconds,
+            "calls": [],
+        }
+        for sub_event in self.sub_events:
+            for call in sub_event.to_flame_chart(max_depth, 0, None, start_time, id_gen):
+                result["calls"].append(call)
+        return result
 
 class FunctionCall(object):
     def __init__(self, call_event=None, sub_events=None, return_event=None):
@@ -211,55 +225,22 @@ class FunctionCall(object):
             result["sub_events"] = [event.to_data(depth, self) for event in self.sub_events]
         return result
 
-    def to_flame_chart(self, depth=None, parent=None):
-        """serialize to data
-        
-        @param depth [int, None] how many levels deep to go.
-            0: no sub-events.
-            1: 1 level of sub-events
-            None: no limit"""
-        if depth is not None:
-            depth -= 1
-        result = {
-            "seconds_since_parent": 0,
-            "duration": (self.return_event.timestamp - self.call_event.timestamp).total_seconds(),
-            "call_event": self.call_event.to_data(),
-            "sub_events": [],
-            "return_event": self.return_event.to_data(),
-        }
-        if parent is not None:
-            result["seconds_since_parent"] = (self.call_event.timestamp - parent.call_event.timestamp).total_seconds()
-        if depth != -1:
-            result["sub_events"] = [event.to_flame_chart(depth, self) for event in self.sub_events]
-        return result
-
-    def to_flame_2(self, max_depth):
-        start_time = self.call_event.timestamp
-        id_gen = itertools.count(1)
-        result = {
-            "start_time": start_time.strftime(TIME_FORMAT),
-            "calls": [],
-        }
-        for call in self._to_flame_2(max_depth, 0, None, start_time, id_gen):
-            result["calls"].append(call)
-        return result
-
-
-    def _to_flame_2(self, max_depth, cur_depth, parent_id, start_time, id_gen):
+    def to_flame_chart(self, max_depth, cur_depth, parent_id, start_time, id_gen):
         this_id = next(id_gen)
-        yield {
-            "id": this_id,
-            "depth": cur_depth,
-            "parent_id": parent_id,
-            "call_time": (self.call_event.timestamp - start_time).total_seconds(),
-            "ret_time": (self.return_event.timestamp - start_time).total_seconds(),
-            "name": self.call_event.function_name,
-            "args": self.call_event.args,
-            "retval": self.return_event.retval,
-        }
+        if self.call_event and self.return_event:
+            yield {
+                "id": this_id,
+                "depth": cur_depth,
+                "parent_id": parent_id,
+                "call_time": (self.call_event.timestamp - start_time).total_seconds(),
+                "ret_time": (self.return_event.timestamp - start_time).total_seconds(),
+                "name": self.call_event.function_name,
+                "args": self.call_event.args,
+                "retval": self.return_event.retval,
+            }
         if cur_depth < max_depth:
             for evt in self.sub_events:
-                for call in evt._to_flame_2(max_depth, cur_depth + 1, this_id, start_time, id_gen):
+                for call in evt.to_flame_chart(max_depth, cur_depth + 1, this_id, start_time, id_gen):
                     yield call
 
 
