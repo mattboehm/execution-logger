@@ -27,8 +27,6 @@ def main():
         event_logger = debugger.JsonFileEventLogger(log_file)
         debug_options = debugger.Options(log_lines=True, log_args=True, log_retval=True)
         dbg = debugger.LoggingDebugger(event_logger, options=debug_options)
-        dbg.set_trace()
         program = options["<program>"]
         sys.argv = [program] + options["<args>"]
-        execfile(program)
-        dbg.set_quit()
+        dbg.run("execfile('{0}')".format(program))
