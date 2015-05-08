@@ -4,6 +4,7 @@ Line of code executed
 Exception raised"""
 from datetime import datetime
 import itertools
+from six import itervalues, string_types
 
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
 
@@ -15,7 +16,7 @@ class Event(object):
     stack_change = 0
 
     def __init__(self, timestamp=None, file_name=None, line_number=None):
-        if timestamp and isinstance(timestamp, basestring):
+        if timestamp and isinstance(timestamp, string_types):
             timestamp = datetime.strptime(timestamp, TIME_FORMAT)
         self.file_name = file_name
         self.line_number = line_number
@@ -306,7 +307,7 @@ class FunctionSet(object):
         self.functions[callee.key].called_by.add(caller.key)
 
     def to_data(self):
-        return [function.to_data() for function in self.functions.itervalues()]
+        return [function.to_data() for function in itervalues(self.functions)]
 
     @classmethod
     def from_events(cls, events):

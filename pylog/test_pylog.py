@@ -1,7 +1,7 @@
 import datetime
 import unittest
 
-import events
+from pylog import events
 
 EVENT_LISTS = { 
     "1": [
@@ -15,6 +15,7 @@ EVENT_LISTS = {
         events.ReturnEvent(file_name="foo.py", line_number=8, function_name="main"),
     ],
 }
+
 class TestEvent(unittest.TestCase):
     """The Event classes"""
 
@@ -114,28 +115,23 @@ class TestFunctionSet(unittest.TestCase):
         func2 = fset.add_function("some_other_func", "foo.py", 17)
         fset.add_call(func1, func2)
         self.assertEqual(
-            fset.to_data(),
-            [{'called_by': [('some_func', 'my_file.py', 7)],
-              'calls': [],
-              'file_name': 'foo.py',
-              'line_number': 17,
-              'name': 'some_other_func'},
-             {'called_by': [],
+            list(sorted(fset.to_data(), key=lambda a: a["name"])),
+            [{'called_by': [],
               'calls': [('some_other_func', 'foo.py', 17)],
               'file_name': 'my_file.py',
               'line_number': 7,
-              'name': 'some_func'}
+              'name': 'some_func'},
+             {'called_by': [('some_func', 'my_file.py', 7)],
+              'calls': [],
+              'file_name': 'foo.py',
+              'line_number': 17,
+              'name': 'some_other_func'}
             ]
         )
     def test_from_events(self):
         fset = events.FunctionSet.from_events(EVENT_LISTS["1"])
-        self.assertEqual(fset.to_data(),
-            [{'called_by': [('main', 'foo.py', 8)],
-              'calls': [('func3', 'baz.py', 27)],
-              'file_name': 'bar.py',
-              'line_number': 22,
-              'name': 'somefunc'},
-             {'called_by': [('somefunc', 'bar.py', 22)],
+        self.assertEqual(list(sorted(fset.to_data(), key=lambda a: a["name"])),
+            [{'called_by': [('somefunc', 'bar.py', 22)],
               'calls': [],
               'file_name': 'baz.py',
               'line_number': 27,
@@ -145,6 +141,11 @@ class TestFunctionSet(unittest.TestCase):
               'file_name': 'foo.py',
               'line_number': 8,
               'name': 'main'},
+             {'called_by': [('main', 'foo.py', 8)],
+              'calls': [('func3', 'baz.py', 27)],
+              'file_name': 'bar.py',
+              'line_number': 22,
+              'name': 'somefunc'},
              {'called_by': [('main', 'foo.py', 8)],
               'calls': [],
               'file_name': 'bar.py',

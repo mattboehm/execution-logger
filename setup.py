@@ -20,6 +20,7 @@ setup(name='pylog',
       include_package_data=True,
       install_requires=[
         'docopt',
+        'six',
       ],
       entry_points={
         'console_scripts': ['pylog=pylog.cli:main'],
