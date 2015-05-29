@@ -13,9 +13,9 @@ from pylog import events
 
 class WebViewer(bottle.Bottle):
 
-    def __init__(self, log_file):
+    def __init__(self, evts):
         super(WebViewer, self).__init__()
-        self.log_file = log_file
+        self.evts = evts
         self.route("/", callback=self.root)
         self.route("/flame.json", callback=self.get_flame_json)
         self.route("/static/<filename>", callback=self.static)
@@ -35,15 +35,16 @@ class WebViewer(bottle.Bottle):
 
 
     def get_flame_json(self):
-        evts = [events.event_from_data(json.loads(line.strip())) for line in self.log_file]
-        etree = events.ExecutionTree.from_events(evts)
+        etree = events.ExecutionTree.from_events(self.evts)
         return json.dumps(etree.to_flame_chart(100))
 
 def main():
     options = docopt.docopt(__doc__)
     with open(options["<file>"], "r") as log_file:
-        viewer = WebViewer(log_file)
-        viewer.run(host="localhost", port=8080)
+        evts = [events.event_from_data(json.loads(line.strip())) for line in self.log_file]
+    
+    viewer = WebViewer(evts)
+    viewer.run(host="localhost", port=8080)
 
 if __name__ == "__main__":
     main()
