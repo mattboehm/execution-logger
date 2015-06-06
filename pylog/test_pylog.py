@@ -5,14 +5,14 @@ from pylog import events
 
 EVENT_LISTS = { 
     "1": [
-        events.CallEvent(file_name="foo.py", line_number=8, function_name="main"),
-        events.CallEvent(file_name="bar.py", line_number=22, function_name="somefunc"),
-        events.CallEvent(file_name="baz.py", line_number=27, function_name="func3"),
-        events.ReturnEvent(file_name="baz.py", line_number=27, function_name="func3"),
-        events.ReturnEvent(file_name="bar.py", line_number=22, function_name="somefunc"),
-        events.CallEvent(file_name="bar.py", line_number=50, function_name="someotherfunc"),
-        events.ReturnEvent(file_name="bar.py", line_number=50, function_name="someotherfunc"),
-        events.ReturnEvent(file_name="foo.py", line_number=8, function_name="main"),
+        events.CallEvent(file_name="foo.py", line_number=8, function_name="main", timestamp="2015-01-20T14:30:32.001000"),
+        events.CallEvent(file_name="bar.py", line_number=22, function_name="somefunc", timestamp="2015-01-20T14:30:35.001000"),
+        events.CallEvent(file_name="baz.py", line_number=27, function_name="func3", timestamp="2015-01-20T14:30:36.002000"),
+        events.ReturnEvent(file_name="baz.py", line_number=27, function_name="func3", timestamp="2015-01-20T14:32:00.000000"),
+        events.ReturnEvent(file_name="bar.py", line_number=22, function_name="somefunc", timestamp="2015-01-20T14:40:32.001000"),
+        events.CallEvent(file_name="bar.py", line_number=50, function_name="someotherfunc", timestamp="2015-01-20T15:30:32.001000"),
+        events.ReturnEvent(file_name="bar.py", line_number=50, function_name="someotherfunc", timestamp="2015-01-20T16:50:32.001000"),
+        events.ReturnEvent(file_name="foo.py", line_number=8, function_name="main", timestamp="2015-01-21T14:30:32.001000"),
     ],
 }
 
@@ -153,24 +153,9 @@ class TestFunctionSet(unittest.TestCase):
               'name': 'someotherfunc'}]
         )
     def test_to_flame(self):
-        #FIXME add timestamps to events so this test passes
         etree = events.ExecutionTree.from_events(EVENT_LISTS["1"])
-        etree.to_flame_chart(100)
-        #self.assertEqual(etree.sub_events[0].to_flame_2(100), {
-            #'start_time': '2015-05-07T00:37:32.189008',
-            #'calls': [
-                #{'parent_id': None, 'depth': 0, 'ret_time': 0.000112, 'name': 'main', 'args': None, 'retval': None, 'id': 1, 'call_time': 0.0},
-                #{'parent_id': 1, 'depth': 1, 'ret_time': 7.7e-05, 'name': 'somefunc', 'args': None, 'retval': None, 'id': 2, 'call_time': 3.7e-05},
-                #{'parent_id': 2, 'depth': 2, 'ret_time': 6.5e-05, 'name': 'func3', 'args': None, 'retval': None, 'id': 3, 'call_time': 5.1e-05},
-                #{'parent_id': 1, 'depth': 1, 'ret_time': 0.0001, 'name': 'someotherfunc', 'args': None, 'retval': None, 'id': 4, 'call_time': 8.9e-05}
-            #]})
-        #self.assertEqual(etree.sub_events[0].to_flame_2(0), {
-            #'start_time': '2015-05-07T00:37:32.189008',
-            #'calls': [
-                #{'parent_id': None, 'depth': 0, 'ret_time': 0.000112, 'name': 'main', 'args': None, 'retval': None, 'id': 1, 'call_time': 0.0},
-                #{'parent_id': 1, 'depth': 1, 'ret_time': 7.7e-05, 'name': 'somefunc', 'args': None, 'retval': None, 'id': 2, 'call_time': 3.7e-05},
-                #{'parent_id': 1, 'depth': 1, 'ret_time': 0.0001, 'name': 'someotherfunc', 'args': None, 'retval': None, 'id': 4, 'call_time': 8.9e-05}
-            #]})
+        self.assertEqual(etree.to_flame_chart(100), {'total_seconds': 86400.0, 'start_time': '2015-01-20T14:30:32.001000', 'calls': [{'parent_id': None, 'depth': 0, 'ret_time': 86400.0, 'name': 'main', 'args': None, 'retval': None, 'id': 1, 'call_time': 0.0}, {'parent_id': 1, 'depth': 1, 'ret_time': 600.0, 'name': 'somefunc', 'args': None, 'retval': None, 'id': 2, 'call_time': 3.0}, {'parent_id': 2, 'depth': 2, 'ret_time': 87.999, 'name': 'func3', 'args': None, 'retval': None, 'id': 3, 'call_time': 4.001}, {'parent_id': 1, 'depth': 1, 'ret_time': 8400.0, 'name': 'someotherfunc', 'args': None, 'retval': None, 'id': 4, 'call_time': 3600.0}]})
+        self.assertEqual(etree.to_flame_chart(1), {'total_seconds': 86400.0, 'start_time': '2015-01-20T14:30:32.001000', 'calls': [{'parent_id': None, 'depth': 0, 'ret_time': 86400.0, 'name': 'main', 'args': None, 'retval': None, 'id': 1, 'call_time': 0.0}, {'parent_id': 1, 'depth': 1, 'ret_time': 600.0, 'name': 'somefunc', 'args': None, 'retval': None, 'id': 2, 'call_time': 3.0}, {'parent_id': 1, 'depth': 1, 'ret_time': 8400.0, 'name': 'someotherfunc', 'args': None, 'retval': None, 'id': 3, 'call_time': 3600.0}]})
 
 if __name__ == '__main__':
     unittest.main()
