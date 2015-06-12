@@ -1,2 +1,6 @@
 *.pyc
 *.swp
+venv/
+pylog.egg-info/
+build/
+dist/
