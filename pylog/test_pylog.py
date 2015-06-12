@@ -16,7 +16,7 @@ EVENT_LISTS = {
     ],
 }
 
-class TestEvent(unittest.TestCase):
+class TestEventSerialization(unittest.TestCase):
     """The Event classes"""
 
     events = {
@@ -36,7 +36,7 @@ class TestEvent(unittest.TestCase):
         **events["function"]
     )
     events["return"] = dict(
-        rval="[1, 2, 3]",
+        retval="[1, 2, 3]",
         **events["function"]
     )
     events["exception"] = dict(**events["function"])
@@ -57,19 +57,36 @@ class TestEvent(unittest.TestCase):
         "line_number": 7,
         "function_name": "some_func",
         "args": {"num": 1, "str": "foo"},
-        "rval": "[1, 2, 3]",
+        "retval": "[1, 2, 3]",
     }
 
     def tearDown(self):
         pass
 
-    def test_event(self):
-        evt_data = self.events["event"]
-        evt = events.Event.from_data(evt_data)
-        for attr in ["timestamp", "file_name", "line_number"]:
-            self.assertEqual(getattr(evt, attr), self.expected_attrs[attr])
+    def _test_serialization(self, event_type):
+        evt_data = self.events[event_type]
+        evt = events.event_from_data(evt_data)
+        for attr, expected_val in self.expected_attrs.items():
+            if hasattr(evt, attr):
+                self.assertEqual(getattr(evt, attr), expected_val)
         back_to_data = evt.to_data()
         self.assertEqual(evt_data, back_to_data)
+
+    def test_event(self):
+        self._test_serialization("event")
+
+    def test_line(self):
+        self._test_serialization("line")
+
+    def test_call(self):
+        self._test_serialization("call")
+
+    def test_return(self):
+        self._test_serialization("return")
+
+    def test_exception(self):
+        self._test_serialization("exception")
+
 
 class TestFunction(unittest.TestCase):
     """Tests events.Function"""
@@ -111,7 +128,7 @@ class TestFunctionSet(unittest.TestCase):
 
     def test_add_function(self):
         fset = events.FunctionSet()
-        func1 = fset.add_function_from_event(events.event_from_data(TestEvent.events["call"]))
+        func1 = fset.add_function_from_event(events.event_from_data(TestEventSerialization.events["call"]))
         func2 = fset.add_function("some_other_func", "foo.py", 17)
         fset.add_call(func1, func2)
         self.assertEqual(
