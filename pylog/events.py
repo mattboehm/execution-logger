@@ -4,6 +4,7 @@ Line of code executed
 Exception raised"""
 from datetime import datetime
 import itertools
+import json
 from six import itervalues, string_types
 
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
@@ -162,6 +163,10 @@ def event_from_data(data, event_lookup=EVENT_LOOKUP):
     event_class = event_lookup[data["type"]]
     return event_class.from_data(data)
 
+def events_from_file(f):
+    evts = [event_from_data(json.loads(line.strip())) for line in f]
+    return evts
+
 #TODO move to different file?
 class ExecutionTree(object):
     def __init__(self, sub_events=None):
@@ -242,7 +247,6 @@ class FunctionCall(object):
             for evt in self.sub_events:
                 for call in evt.to_flame_chart(max_depth, cur_depth + 1, this_id, start_time, id_gen):
                     yield call
-
 
 class Function(object):
     def __init__(self, name, file_name, line_number, called_by=None, calls=None):

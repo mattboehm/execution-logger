@@ -41,7 +41,7 @@ class WebViewer(bottle.Bottle):
 def main():
     options = docopt.docopt(__doc__)
     with open(options["<file>"], "r") as log_file:
-        evts = [events.event_from_data(json.loads(line.strip())) for line in self.log_file]
+        evts = events.events_from_file(log_file)
     
     viewer = WebViewer(evts)
     viewer.run(host="localhost", port=8080)

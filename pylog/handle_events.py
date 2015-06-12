@@ -5,15 +5,10 @@ Pipe a file into it (or call it w/ a file as an arg) and it prints:
 * FunctionCall  format
 It also generates files ./functions.dot and ./functions.dot.svg"""
 import fileinput
-from pylog import EventHandler
-import logreader
+from pylog import events
 from pprint import pprint
 import graphviz
-reader = logreader.JsonFileEventReader(fileinput.input())
-event_handler = EventHandler(reader.iter_events())
-event_handler.process_events()
-pprint(event_handler.function_set.to_data())
-pprint([call.to_data() for call in event_handler.root_calls])
+
 def fmt_key(key):
     return " ".join(map(str, key))
 
@@ -27,6 +22,15 @@ def make_function_graph(function_set):
         )
         for call in function.calls:
             dot.edge(fmt_key(key), fmt_key(call))
-    dot.format = "svg"
-    dot.render('functions.dot')
-make_function_graph(event_handler.function_set)
+    return dot
+
+def main():
+    """"""
+    evts = events.events_from_file(fileinput.input())
+    func_set = events.FunctionSet.from_events(evts)
+    graph = make_function_graph(func_set)
+    graph.format = "svg"
+    graph.render('functions.dot')
+
+if __name__ == '__main__':
+    main()

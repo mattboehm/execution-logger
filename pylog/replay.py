@@ -19,21 +19,6 @@ class ImmutableStack(object):
     def new(cls, items):
         return cls(items)
 
-#class Cursor(object):
-    #def __init__(self, iterable, index):
-        #self._iterable = iterable
-        #self._index = index
-    
-    #def has_previous(self):
-        #pass
-
-    #def has_next(self):
-        #pass
-
-    #@classmethod
-    #def new(cls, iterable, index, *args, **kwargs):
-        #return cls(iterable, index, *args, **kwargs)
-
 Location = collections.namedtuple("Location", ["file", "line"])
 
 class PushLocation(object):
