@@ -27,9 +27,10 @@ function Tree(data){
 
         calls.enter().append("rect")
             .attr("data-retval", function(d){return d.retval;})
-            .attr("x", function(d){return time(d.call_time)})
-            .attr("width", function(d){return time(d.ret_time - d.call_time)})
             .attr("height", 30)
+        calls.transition()
+            .attr("x", function(d){return time(d.call_time)})
+            .attr("width", function(d){result = time(d.ret_time) - time(d.call_time); return (result > 0)? result: 0;})
             .attr("y", function(d){return d.depth * 40});
 
         calls.attr("class", function(d){
@@ -53,6 +54,10 @@ function Tree(data){
             draw();
 
         });
+        calls.on("click", function(d){
+            time.domain([d.call_time, d.ret_time]);
+            draw();
+        });
     }
     draw();
     return {
@@ -60,22 +65,8 @@ function Tree(data){
     };
 }
 var onLoad = function(){
-    //var tree;
     d3.json("/flame.json", function(error, json){
         if(error){console.error(error);}
         tree = Tree(json);
-        //tree.forEach(function(node, depth){console.log(node, depth)});
-        //tree.forEach(function(node, depth, parent_node){
-            //if (parent_node){
-                //container = parent_node.elt;
-            //} else {
-                //container = d3.select("#fc");
-            //}
-            //node.elt = container.append("svg:g")
-            //node.elt.attr("width", node.width + "%");
-            //node.elt.attr("transform", "matrix("+node.width/100+" 0 0 1 "+node.x_offset*container.node().getBBox().width/100 +", 40)");
-            //node.elt.append("svg:rect").attr("width", "100%").attr("class", "call").attr("height", "39");
-            
-        //});
     });
 }();
