@@ -4,14 +4,34 @@
   <meta charset='UTF-8' />
   <title>Flame Chart</title>
   <link rel="stylesheet" type="text/css" href="/static/flame.css"/>
-  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="/static/bootstrap.min.css"/>
+
+  <script src="/static/d3.v3.min.js"></script>
+  <script src="/static/react.js"></script>
+  <script src="/static/mori.js"></script>
+  <script src="/static/jquery-1.11.3.min.js"></script>
 </head>
 <body>
-  <div id='container'>
-    <svg id="fc">
-    </svg>
-    <div id="info-panel"></div>
+  <div id="toolbar">
+    <ul class='nav nav-tabs'>
+      <li role="presentation" class="active">
+        <a href='#container'>Flame Chart</a>
+      </li>
+      <li role="presentation">
+        <a href='#call-tree'>Tree</a>
+      </li>
+    </ul>
   </div>
+  <div class='tab-content container-fluid'>
+    <div class="tab-pane active" id='container'>
+      <div id='left-panel' class='col-sm-3'></div>
+      <svg id="fc" class='col-sm-6'></svg>
+      <div id="info-panel" class='col-sm-3'></div>
+    </div>
+
+    <div id="call-tree" class="tab-pane"></div>
+  </div>
+  <script src="/static/bootstrap.min.js"></script>
   <script src="/static/flame.js"></script>
 </body>
 </html>
