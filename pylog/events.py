@@ -240,6 +240,7 @@ class FunctionCall(object):
                 "call_time": (self.call_event.timestamp - start_time).total_seconds(),
                 "ret_time": (self.return_event.timestamp - start_time).total_seconds(),
                 "name": self.call_event.function_name,
+                "file_name": self.call_event.file_name,
                 "args": self.call_event.args,
                 "retval": getattr(self.return_event, "retval", ""),
             }
