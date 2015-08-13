@@ -132,7 +132,8 @@ class LoggingDebugger(bdb.Bdb):
 
     def format_args(self, args):
         """Format the arguments"""
-        return inspect.formatargvalues(*args)[:500]
+        #strip off surrounding parens, limit to 500 characters
+        return inspect.formatargvalues(*args)[1:-1][:500]
 
     def format_retval(self, retval):
         """Format the return value"""
