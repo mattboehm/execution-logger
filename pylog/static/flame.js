@@ -182,7 +182,9 @@ var CallTreeNode = React.createClass({
     return dom.div(
       {className: "call-tree-node", title: call.name, onClick:self.toggleExpand, key:call.id},
       dom.span({className: "func-name"}, call.name),
-      "(): ",
+      "(",
+      dom.span({className: "func-args"}, call.args),
+      "): ",
       mori.intoArray(childNodes),
       dom.span({className: "func-retval"}, call.retval),
       dom.span({className: "duration"}, duration)
