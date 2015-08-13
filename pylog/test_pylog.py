@@ -170,9 +170,92 @@ class TestFunctionSet(unittest.TestCase):
               'name': 'someotherfunc'}]
         )
     def test_to_flame(self):
+        self.maxDiff = None
         etree = events.ExecutionTree.from_events(EVENT_LISTS["1"])
-        self.assertEqual(etree.to_flame_chart(100), {'total_seconds': 86400.0, 'start_time': '2015-01-20T14:30:32.001000', 'calls': [{'parent_id': None, 'depth': 0, 'ret_time': 86400.0, 'name': 'main', 'args': None, 'retval': None, 'id': 1, 'call_time': 0.0}, {'parent_id': 1, 'depth': 1, 'ret_time': 600.0, 'name': 'somefunc', 'args': None, 'retval': None, 'id': 2, 'call_time': 3.0}, {'parent_id': 2, 'depth': 2, 'ret_time': 87.999, 'name': 'func3', 'args': None, 'retval': None, 'id': 3, 'call_time': 4.001}, {'parent_id': 1, 'depth': 1, 'ret_time': 8400.0, 'name': 'someotherfunc', 'args': None, 'retval': None, 'id': 4, 'call_time': 3600.0}]})
-        self.assertEqual(etree.to_flame_chart(1), {'total_seconds': 86400.0, 'start_time': '2015-01-20T14:30:32.001000', 'calls': [{'parent_id': None, 'depth': 0, 'ret_time': 86400.0, 'name': 'main', 'args': None, 'retval': None, 'id': 1, 'call_time': 0.0}, {'parent_id': 1, 'depth': 1, 'ret_time': 600.0, 'name': 'somefunc', 'args': None, 'retval': None, 'id': 2, 'call_time': 3.0}, {'parent_id': 1, 'depth': 1, 'ret_time': 8400.0, 'name': 'someotherfunc', 'args': None, 'retval': None, 'id': 3, 'call_time': 3600.0}]})
+        self.assertEqual(etree.to_flame_chart(100), {
+            'total_seconds': 86400.0,
+            'start_time': '2015-01-20T14:30:32.001000',
+            'calls': [
+                {
+                    'parent_id': None,
+                    'depth': 0,
+                    'ret_time': 86400.0,
+                    'file_name': 'foo.py',
+                    'name': 'main',
+                    'args': None,
+                    'retval': None,
+                    'id': 1,
+                    'call_time': 0.0
+                }, {
+                    'parent_id': 1,
+                    'depth': 1,
+                    'ret_time': 600.0,
+                    'file_name': 'bar.py',
+                    'name': 'somefunc',
+                    'args': None,
+                    'retval': None,
+                    'id': 2,
+                    'call_time': 3.0
+                }, {
+                    'parent_id': 2,
+                    'depth': 2,
+                    'ret_time': 87.999,
+                    'file_name': 'baz.py',
+                    'name': 'func3',
+                    'args': None,
+                    'retval': None,
+                    'id': 3,
+                    'call_time': 4.001
+                }, {
+                    'parent_id': 1,
+                    'depth': 1,
+                    'ret_time': 8400.0,
+                    'file_name': 'bar.py',
+                    'name': 'someotherfunc',
+                    'args': None,
+                    'retval': None,
+                    'id': 4,
+                    'call_time': 3600.0
+                }
+            ]
+        })
+        self.assertEqual(etree.to_flame_chart(1), {
+            'total_seconds': 86400.0,
+            'start_time': '2015-01-20T14:30:32.001000',
+            'calls': [
+                {
+                    'parent_id': None,
+                    'depth': 0,
+                    'ret_time': 86400.0,
+                    'file_name': 'foo.py',
+                    'name': 'main',
+                    'args': None,
+                    'retval': None,
+                    'id': 1,
+                    'call_time': 0.0
+                }, {
+                    'parent_id': 1,
+                    'depth': 1,
+                    'ret_time': 600.0,
+                    'file_name': 'bar.py',
+                    'name': 'somefunc',
+                    'args': None,
+                    'retval': None,
+                    'id': 2,
+                    'call_time': 3.0
+                }, {
+                    'parent_id': 1,
+                    'depth': 1,
+                    'ret_time': 8400.0,
+                    'file_name': 'bar.py',
+                    'name': 'someotherfunc',
+                    'args': None,
+                    'retval': None,
+                    'id': 3,
+                    'call_time': 3600.0
+                }
+            ]
+        })
 
 if __name__ == '__main__':
     unittest.main()
