@@ -10,6 +10,7 @@ Commands:
 """
 import bdb
 import collections
+import inspect
 import json
 import os
 from events import LineEvent, CallEvent, ReturnEvent, ExceptionEvent, FunctionSet, FunctionCall
@@ -104,7 +105,10 @@ class LoggingDebugger(bdb.Bdb):
 
     def user_call(self, frame, args):
         if self.should_log(frame):
-            arg_string = self.format_args(args) if self.options["log_args"] else None
+            arg_string = None
+            if self.options["log_args"]:
+                arg_string = self.format_args(inspect.getargvalues(frame))
+
             state = get_state(frame, args=arg_string)
             call_event = CallEvent.from_state(state)
             self.event_logger.log_event(call_event)
@@ -128,7 +132,7 @@ class LoggingDebugger(bdb.Bdb):
 
     def format_args(self, args):
         """Format the arguments"""
-        return repr(args)[:500]
+        return inspect.formatargvalues(*args)[:500]
 
     def format_retval(self, retval):
         """Format the return value"""
