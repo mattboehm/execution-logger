@@ -5,10 +5,34 @@
     <title>Pylog</title>
 </head>
 <body>
-<h2>Pylog execution logging, visualization, and more!</h2>
+<h1>Pylog: execution logging, visualization, and more!</h1>
 
 Pylog logs function calls, lines executed, arguments, return values, and more to a file.
 This file can then be read by other programs to show statistics or visualizations about the code execution.
-<a href='/static/flame.html'>Click here</a> to see a brief example.
+
+<h2>How do I use it?</h2>
+
+There are several ways to record your program:<br/>
+
+<ol>
+	<li>Instead of running "python foo.py arg1 arg2":
+
+	<pre>pylog foo.py arg1 arg2</pre></li>
+	<li>Start logging programmatically. (see <a href="https://github.com/mattboehm/execution-logger/blob/master/examples/basic.py">examples/basic.py</a>)</li>
+	<li>Log explicit functions programmatically: (see <a href="https://github.com/mattboehm/execution-logger/blob/master/examples/explicit.py">examples/explicit.py</a>)</li>
+</ol>
+
+<h2>What can I do with the logs?</h2>
+
+Some of these are currently implemented within pylog, whereas some can either be done in a slightly complicated manual way or are yet to be implemented.
+<ul>
+	<li>View profiling info</li>
+	<li>Step through the program forwards and backwards</li>
+	<li>Manually inspect the logs in a more readable format with readable.py</li>
+	<li>Diff two logs against each other (after stripping timestamps) to see where two runs of a program diverged</li>
+	<li>View a <a href='/static/flame.html'>flame chart</a> of your program</li>
+	<li>View a call graph of your program</li>
+	<li>Compare performance between two runs of a program</li>
+</ul>
 </body>
 </html>
